@@ -1,0 +1,157 @@
+package enrollments_test
+
+import (
+	"errors"
+	"io"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"simple-rest-api/internal/handlers/enrollments"
+	"simple-rest-api/internal/handlers/enrollments/mocks"
+	"simple-rest-api/internal/models"
+	"simple-rest-api/internal/repository"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestDeleteEnrollment(t *testing.T) {
+	silentLogger := slog.New(slog.NewTextHandler(io.Discard, nil))
+
+	tests := []struct {
+		name           string
+		studentID      string
+		courseID       string
+		mockSetup      func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator)
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			name:      "Success - Enrollment Deleted",
+			studentID: "1",
+			courseID:  "1",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+				studentValidator.EXPECT().GetStudentByID(1).Return(&models.Student{ID: 1}, nil)
+				courseValidator.EXPECT().GetCourseByID(1).Return(&models.Course{ID: 1}, nil)
+				deleter.EXPECT().DeleteEnrollment(1, 1).Return(nil)
+			},
+			expectedStatus: http.StatusNoContent,
+			expectedBody:   "",
+		},
+		{
+			name:      "Error - Invalid Student ID",
+			studentID: "invalid",
+			courseID:  "1",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "invalid student id",
+		},
+		{
+			name:      "Error - Negative Student ID",
+			studentID: "-1",
+			courseID:  "1",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "invalid student id",
+		},
+		{
+			name:      "Error - Zero Student ID",
+			studentID: "0",
+			courseID:  "1",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "invalid student id",
+		},
+		{
+			name:      "Error - Invalid Course ID",
+			studentID: "1",
+			courseID:  "invalid",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "invalid course id",
+		},
+		{
+			name:      "Error - Negative Course ID",
+			studentID: "1",
+			courseID:  "-1",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "invalid course id",
+		},
+		{
+			name:      "Error - Student Not Found",
+			studentID: "99",
+			courseID:  "1",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+				studentValidator.EXPECT().GetStudentByID(99).Return(nil, repository.ErrStudentNotFound)
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "student not found",
+		},
+		{
+			name:      "Error - Course Not Found",
+			studentID: "1",
+			courseID:  "99",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+				studentValidator.EXPECT().GetStudentByID(1).Return(&models.Student{ID: 1}, nil)
+				courseValidator.EXPECT().GetCourseByID(99).Return(nil, repository.ErrCourseNotFound)
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "course not found",
+		},
+		{
+			name:      "Error - Enrollment Not Found",
+			studentID: "1",
+			courseID:  "1",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+				studentValidator.EXPECT().GetStudentByID(1).Return(&models.Student{ID: 1}, nil)
+				courseValidator.EXPECT().GetCourseByID(1).Return(&models.Course{ID: 1}, nil)
+				deleter.EXPECT().DeleteEnrollment(1, 1).Return(repository.ErrEnrollmentNotFound)
+			},
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   "enrollment not found",
+		},
+		{
+			name:      "Error - Database Error",
+			studentID: "1",
+			courseID:  "1",
+			mockSetup: func(deleter *mocks.MockEnrollmentDeleter, studentValidator *mocks.MockStudentValidator, courseValidator *mocks.MockCourseValidator) {
+				studentValidator.EXPECT().GetStudentByID(1).Return(&models.Student{ID: 1}, nil)
+				courseValidator.EXPECT().GetCourseByID(1).Return(&models.Course{ID: 1}, nil)
+				deleter.EXPECT().DeleteEnrollment(1, 1).Return(errors.New("database connection lost"))
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody:   "failed to delete enrollment",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mockDeleter := mocks.NewMockEnrollmentDeleter(t)
+			mockStudentValidator := mocks.NewMockStudentValidator(t)
+			mockCourseValidator := mocks.NewMockCourseValidator(t)
+
+			tc.mockSetup(mockDeleter, mockStudentValidator, mockCourseValidator)
+
+			handler := enrollments.Delete(silentLogger, mockDeleter, mockStudentValidator, mockCourseValidator)
+
+			req := httptest.NewRequest(http.MethodDelete, "/students/"+tc.studentID+"/enrollments/"+tc.courseID, nil)
+			req.SetPathValue("id", tc.studentID)
+			req.SetPathValue("course_id", tc.courseID)
+			rr := httptest.NewRecorder()
+
+			handler.ServeHTTP(rr, req)
+
+			assert.Equal(t, tc.expectedStatus, rr.Code, "status code mismatch")
+			if tc.expectedBody != "" {
+				assert.Contains(t, rr.Body.String(), tc.expectedBody, "response body mismatch")
+			}
+		})
+	}
+}

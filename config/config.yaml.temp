@@ -1,0 +1,6 @@
+env: "local"
+connectionString: "postgres://user:password@localhost:5432/school_db?sslmode=disable"
+http:
+  host: "localhost"
+  port: 8081
+  timeout: 10s

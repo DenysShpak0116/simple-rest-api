@@ -1,0 +1,680 @@
+basePath: /
+definitions:
+  internal_handlers.ApiResponse-array_internal_handlers_CourseResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/internal_handlers.CourseResponse'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  internal_handlers.ApiResponse-array_internal_handlers_StudentResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/internal_handlers.StudentResponse'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  internal_handlers.ApiResponse-array_internal_handlers_TeacherResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/internal_handlers.TeacherResponse'
+        type: array
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  internal_handlers.ApiResponse-internal_handlers_CourseResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.CourseResponse'
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  internal_handlers.ApiResponse-internal_handlers_EnrollmentResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.EnrollmentResponse'
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  internal_handlers.ApiResponse-internal_handlers_StudentResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.StudentResponse'
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  internal_handlers.ApiResponse-internal_handlers_TeacherResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.TeacherResponse'
+      message:
+        example: Operation successful
+        type: string
+    type: object
+  internal_handlers.CourseResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        example: Basic mathematics concepts
+        type: string
+      id:
+        example: 1
+        type: integer
+      teacher_id:
+        example: 1
+        type: integer
+      title:
+        example: Introduction to Mathematics
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_handlers.CreateCourseRequest:
+    properties:
+      description:
+        example: Basic mathematics concepts
+        type: string
+      teacher_id:
+        example: 1
+        type: integer
+      title:
+        example: Introduction to Mathematics
+        type: string
+    type: object
+  internal_handlers.CreateStudentRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Doe
+        type: string
+    type: object
+  internal_handlers.CreateTeacherRequest:
+    properties:
+      department:
+        example: Mathematics
+        type: string
+      first_name:
+        example: John
+        type: string
+      last_name:
+        example: Smith
+        type: string
+    type: object
+  internal_handlers.EnrollmentResponse:
+    properties:
+      course_id:
+        example: 1
+        type: integer
+      enrolled_at:
+        type: string
+      student_id:
+        example: 1
+        type: integer
+    type: object
+  internal_handlers.ErrorResponse:
+    properties:
+      error:
+        example: Resource not found
+        type: string
+    type: object
+  internal_handlers.StudentResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        example: john.doe@example.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      id:
+        example: 1
+        type: integer
+      last_name:
+        example: Doe
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_handlers.TeacherResponse:
+    properties:
+      created_at:
+        type: string
+      department:
+        example: Mathematics
+        type: string
+      first_name:
+        example: John
+        type: string
+      id:
+        example: 1
+        type: integer
+      last_name:
+        example: Smith
+        type: string
+      updated_at:
+        type: string
+    type: object
+  internal_handlers.ValidationError:
+    additionalProperties: true
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: This API provides endpoints for managing students, teachers, courses,
+    and enrollments.
+  title: Simple REST API
+  version: "1.0"
+paths:
+  /courses:
+    get:
+      description: Retrieve a list of all courses in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-array_internal_handlers_CourseResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: List all courses
+      tags:
+      - Courses
+    post:
+      consumes:
+      - application/json
+      description: Create a new course with provided information. Validates that the
+        teacher_id exists.
+      parameters:
+      - description: Course creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateCourseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_CourseResponse'
+        "400":
+          description: Validation error or teacher not found
+          schema:
+            $ref: '#/definitions/internal_handlers.ValidationError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Create a new course
+      tags:
+      - Courses
+  /courses/{id}:
+    delete:
+      description: Delete a course by ID
+      parameters:
+      - description: Course ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Delete a course
+      tags:
+      - Courses
+    get:
+      description: Retrieve details of a specific course
+      parameters:
+      - description: Course ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_CourseResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Get a course by ID
+      tags:
+      - Courses
+    put:
+      consumes:
+      - application/json
+      description: Update an existing course's information. Validates that the course
+        exists and that the teacher_id exists.
+      parameters:
+      - description: Course ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Course update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateCourseRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_CourseResponse'
+        "400":
+          description: Validation error or teacher not found
+          schema:
+            $ref: '#/definitions/internal_handlers.ValidationError'
+        "404":
+          description: Course not found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Update a course
+      tags:
+      - Courses
+  /students:
+    get:
+      description: Retrieve a list of all students in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-array_internal_handlers_StudentResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: List all students
+      tags:
+      - Students
+    post:
+      consumes:
+      - application/json
+      description: Create a new student with provided information
+      parameters:
+      - description: Student creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_StudentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ValidationError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Create a new student
+      tags:
+      - Students
+  /students/{id}:
+    delete:
+      description: Delete a student by ID
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Delete a student
+      tags:
+      - Students
+    get:
+      description: Retrieve details of a specific student
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_StudentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Get a student by ID
+      tags:
+      - Students
+    put:
+      consumes:
+      - application/json
+      description: Update an existing student's information
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Student update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_StudentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Update a student
+      tags:
+      - Students
+  /students/{id}/courses/{course_id}:
+    delete:
+      description: Delete an enrollment, removing a student from a course. Validates
+        that both student and course exist.
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Course ID
+        in: path
+        name: course_id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Student or course not found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Enrollment not found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Remove student enrollment from a course
+      tags:
+      - Enrollments
+    post:
+      description: Add a student enrollment in a course. Validates that both student
+        and course exist.
+      parameters:
+      - description: Student ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Course ID
+        in: path
+        name: course_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_EnrollmentResponse'
+        "400":
+          description: Student or course not found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "409":
+          description: Student already enrolled in course
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Enroll a student in a course
+      tags:
+      - Enrollments
+  /teachers:
+    get:
+      description: Retrieve a list of all teachers in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-array_internal_handlers_TeacherResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: List all teachers
+      tags:
+      - Teachers
+    post:
+      consumes:
+      - application/json
+      description: Create a new teacher with provided information
+      parameters:
+      - description: Teacher creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateTeacherRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_TeacherResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ValidationError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Create a new teacher
+      tags:
+      - Teachers
+  /teachers/{id}:
+    delete:
+      description: Delete a teacher by ID
+      parameters:
+      - description: Teacher ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Delete a teacher
+      tags:
+      - Teachers
+    get:
+      description: Retrieve details of a specific teacher
+      parameters:
+      - description: Teacher ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_TeacherResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Get a teacher by ID
+      tags:
+      - Teachers
+    put:
+      consumes:
+      - application/json
+      description: Update an existing teacher's information
+      parameters:
+      - description: Teacher ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Teacher update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateTeacherRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ApiResponse-internal_handlers_TeacherResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ValidationError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Update a teacher
+      tags:
+      - Teachers
+swagger: "2.0"

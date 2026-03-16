@@ -1,0 +1,23 @@
+issue-845-fix: true
+with-expecter: true
+resolve-type-alias: false
+disable-version-string: true
+
+dir: "{{.InterfaceDir}}/mocks"
+outpkg: "mocks"
+filename: "mock_{{.InterfaceNameCamel}}.go"
+mockname: "Mock{{.InterfaceName}}"
+
+packages:
+  simple-rest-api/internal/handlers/courses:
+    config:
+      all: true
+  simple-rest-api/internal/handlers/enrollments:
+    config:
+      all: true
+  simple-rest-api/internal/handlers/students:
+    config:
+      all: true
+  simple-rest-api/internal/handlers/teachers:
+    config:
+      all: true
