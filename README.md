@@ -98,20 +98,20 @@ simple-rest-api/
 
 ### Core Dependencies
 
-| Library | Purpose |
-|---------|---------|
-| `github.com/lib/pq` | PostgreSQL driver for Go |
-| `github.com/swaggo/swag` | Swagger documentation generation |
-| `github.com/swaggo/http-swagger` | Swagger UI for HTTP |
-| `github.com/pressly/goose/v3` | Database migration tool |
-| `github.com/go-playground/validator/v10` | Input validation |
-| `github.com/ilyakaznacheev/cleanenv` | Configuration loading |
-| `github.com/fatih/color` | Colored terminal output |
+| Library                                  | Purpose                          |
+| ---------------------------------------- | -------------------------------- |
+| `github.com/lib/pq`                      | PostgreSQL driver for Go         |
+| `github.com/swaggo/swag`                 | Swagger documentation generation |
+| `github.com/swaggo/http-swagger`         | Swagger UI for HTTP              |
+| `github.com/pressly/goose/v3`            | Database migration tool          |
+| `github.com/go-playground/validator/v10` | Input validation                 |
+| `github.com/ilyakaznacheev/cleanenv`     | Configuration loading            |
+| `github.com/fatih/color`                 | Colored terminal output          |
 
 ### Testing Dependencies
 
-| Library | Purpose |
-|---------|---------|
+| Library                       | Purpose                                  |
+| ----------------------------- | ---------------------------------------- |
 | `github.com/stretchr/testify` | Testing assertions and mocking framework |
 
 ## Configuration
@@ -140,6 +140,7 @@ http:
 ### Loading Configuration
 
 The application loads configuration in this order:
+
 1. Command-line flag: `-config /path/to/config.yaml`
 2. Environment variable: `CONFIG_PATH=/path/to/config.yaml`
 3. Panics if not found
@@ -160,11 +161,6 @@ createdb school_db
 
 2. **Create Configuration File**
 
-```bash
-cp config/config.yaml config/config.yaml
-# Edit config/config.yaml with your database credentials
-```
-
 3. **Run Migrations**
 
 ```bash
@@ -177,11 +173,12 @@ go run cmd/migrator/main.go -config config/config.yaml
 go run cmd/server/main.go -config config/config.yaml
 ```
 
-Server will start on `http://localhost:8081`
+Server will start on `http://localhost:8081` (depends on your configs)
 
 ### Check API Documentation
 
 Navigate to:
+
 ```
 http://localhost:8081/swagger/index.html
 ```
@@ -212,6 +209,7 @@ goose -dir migrations postgres "postgres://user:pass@localhost:5432/db" down
 ### Initial Schema (20260313204945_init_tables.sql)
 
 Creates tables for:
+
 - **students**: Student information with email uniqueness constraint
 - **teachers**: Teacher information with department
 - **courses**: Course information with teacher foreign key
@@ -222,6 +220,7 @@ Includes indexes on frequently queried columns.
 ### Second Migration (20260316103133_add_on_delete.sql)
 
 Modifies course-teacher relationship:
+
 - Changes teacher_id to nullable
 - Updates foreign key constraint from ON DELETE CASCADE to ON DELETE SET NULL
 
@@ -277,6 +276,7 @@ func Create(logger *slog.Logger, creator CourseCreator) http.Handler {
 ### Handler Dependencies
 
 Handlers accept interfaces, not concrete types:
+
 - Loose coupling with repository layer
 - Easy mocking for tests
 - Implementation can be swapped
@@ -309,11 +309,13 @@ Applied in **reverse order** (bottom-up).
 **Purpose**: Logs HTTP request details
 
 **What it logs**:
+
 - HTTP method (GET, POST, etc.)
 - Request path
 - Request ID (from X-Request-ID header)
 
 **Code**:
+
 ```go
 func New(log *slog.Logger) func(h http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -335,11 +337,13 @@ func New(log *slog.Logger) func(h http.Handler) http.Handler {
 **Location**: `pkg/http/middleware/middleware.go`
 
 **Middleware Type Definition**:
+
 ```go
 type Middleware func(http.Handler) http.Handler
 ```
 
 **Chain Function**:
+
 ```go
 func Chain(h http.Handler, middlewares ...Middleware) http.Handler {
 	for i := len(middlewares) - 1; i >= 0; i-- {
@@ -455,6 +459,7 @@ var (
 ```
 
 **Error Handling in Handlers**:
+
 ```go
 course, err := getter.GetCourseByID(courseID)
 if err != nil {
@@ -523,11 +528,13 @@ func setupLogger(env string, w io.Writer) *slog.Logger {
 **Location**: `pkg/slogpretty/slogpretty.go`
 
 Features:
+
 - Color-coded output
 - Human-readable format
 - Perfect for development
 
 **Output Example**:
+
 ```
 INFO: request method=GET path=/api/v1/courses request_id=abc123def456
 WARN: validation failed problems=[{Field: "email", Message: "invalid email format"}]
